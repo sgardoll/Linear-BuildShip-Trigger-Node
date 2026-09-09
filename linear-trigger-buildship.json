@@ -1,0 +1,196 @@
+{
+  "type": "webhook",
+  "dependencies": { "co-body": "6.2.0", "@google-cloud/logging": "12.0.1" },
+  "description": "Connect your Linear workspace to this workflow and trigger actions when issues or other entities change. This node subscribes to Linear webhooks for selected resource types (like Issue, Project, or Comment) and detects status transitions using the `statusChanged` flag. Use this node to automate processes based on updates in Linear, such as moving issues between workflow states. For more details, see the [Linear webhook documentation](https://linear.app/developers/webhooks).",
+  "preSetupPreview": "<div\n  style={{\n    margin: \"22px\",\n    padding: \"24px 42px\",\n    marginTop: \"240px\",\n    display: \"flex\",\n    alignItems: \"center\",\n    justifyContent: \"center\",\n    flexDirection: \"column\",\n  }}\n>\n  <div\n    style={{\n      display: \"flex\",\n      padding: \"8px\",\n      backgroundColor: props.theme.palette.text[50],\n      borderRadius: \"8px\",\n    }}\n  >\n    <img src=\"https://linear.app/favicon.ico\" width=\"16\" height=\"16\" />\n  </div>\n  <br />\n  <Typography\n    sx={(theme) => ({\n      ...theme.typography.body,\n      color: props.theme.palette.text[400],\n      textAlign: \"center\",\n    })}\n  >\n    Finish your setup to receive Linear events into this workflow\n  </Typography>\n</div>",
+  "_groupInfo": {
+    "keyDescription": "Select your Linear personal API key. The key owner must be a workspace admin. Create or manage keys in Linear Settings > Security & access.",
+    "iconUrl": "https://linear.app/favicon.ico",
+    "id": "linear",
+    "description": "Handle Linear events",
+    "uid": "linear",
+    "name": "Linear",
+    "acceptsKey": true
+  },
+  "data": {
+    "description": "Linear webhook payload, plus the derived status-change fields",
+    "properties": {
+      "currentState": {
+        "description": "Resolved workflow state the issue moved into",
+        "title": "Current State",
+        "buildship": {},
+        "type": "object"
+      },
+      "webhookTimestamp": {
+        "buildship": {},
+        "type": "number",
+        "title": "Webhook Timestamp"
+      },
+      "statusChanged": {
+        "description": "True when this is an Issue update whose stateId moved. Gate on this with a Branch node.",
+        "buildship": {},
+        "title": "Status Changed",
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "title": "Data",
+        "buildship": {},
+        "description": "The entity in its post-change state"
+      },
+      "statusTransition": {
+        "description": "Human readable transition, e.g. \"Todo -> In Progress\". Null when not a status change.",
+        "buildship": {},
+        "title": "Status Transition",
+        "type": "string"
+      },
+      "type": {
+        "type": "string",
+        "title": "Type",
+        "buildship": {},
+        "description": "Resource type, e.g. Issue"
+      },
+      "updatedFrom": {
+        "buildship": {},
+        "description": "Only the fields that changed, holding their previous values",
+        "title": "Updated From",
+        "type": "object"
+      },
+      "previousState": {
+        "title": "Previous State",
+        "type": "object",
+        "description": "Resolved workflow state the issue moved out of (id, name, type, color)",
+        "buildship": {}
+      },
+      "url": {
+        "buildship": {},
+        "description": "Link to the entity in Linear",
+        "title": "URL",
+        "type": "string"
+      },
+      "action": {
+        "description": "create, update or remove",
+        "title": "Action",
+        "type": "string",
+        "buildship": {}
+      }
+    },
+    "title": "Linear Event",
+    "buildship": {},
+    "type": "object"
+  },
+  "config": {
+    "structure": [
+      { "parentId": null, "depth": 0, "id": "action", "index": 0 },
+      { "index": 1, "parentId": null, "depth": 0, "id": "resourceTypes" },
+      { "depth": 0, "parentId": null, "index": 2, "id": "linearTeamId" },
+      { "parentId": null, "depth": 0, "index": 3, "id": "webhookLabel" },
+      { "index": 4, "parentId": null, "depth": 0, "id": "resolveStateNames" }
+    ],
+    "type": "object",
+    "sections": {},
+    "properties": {
+      "resolveStateNames": {
+        "properties": {},
+        "type": "boolean",
+        "buildship": { "index": 4, "sensitive": false },
+        "default": true,
+        "description": "Look up the previous and current workflow state names on each status change. Costs one extra Linear API call per transition. Turn off to work with raw stateIds only.",
+        "title": "Resolve State Names"
+      },
+      "resourceTypes": {
+        "buildship": {
+          "sensitive": false,
+          "index": 1,
+          "options": [
+            { "value": "Issue", "label": "Issue" },
+            { "label": "Comment", "value": "Comment" },
+            { "label": "IssueLabel", "value": "IssueLabel" },
+            { "value": "Project", "label": "Project" },
+            { "value": "ProjectUpdate", "label": "ProjectUpdate" },
+            { "label": "Cycle", "value": "Cycle" },
+            { "value": "Reaction", "label": "Reaction" }
+          ]
+        },
+        "enum": [
+          "Issue",
+          "Comment",
+          "IssueLabel",
+          "Project",
+          "ProjectUpdate",
+          "Cycle",
+          "Reaction"
+        ],
+        "properties": {},
+        "description": "Select the Linear entities to watch. Use Issue for issue status changes.",
+        "default": ["Issue"],
+        "title": "Resource Types",
+        "pattern": "",
+        "type": "array"
+      },
+      "action": {
+        "type": "string",
+        "buildship": {
+          "sensitive": false,
+          "options": [
+            { "value": "all", "label": "All changes" },
+            { "label": "Created", "value": "create" },
+            { "label": "Updated", "value": "update" },
+            { "value": "remove", "label": "Removed" },
+            { "label": "Issue status changed", "value": "statusChanged" }
+          ],
+          "index": 0
+        },
+        "title": "Action",
+        "enum": ["all", "create", "update", "remove", "statusChanged"],
+        "default": "all",
+        "pattern": "",
+        "description": "Choose which events start the workflow. Issue status changed requires Issue in Resource Types."
+      },
+      "webhookLabel": {
+        "buildship": { "index": 3, "sensitive": false },
+        "title": "Webhook Label",
+        "default": "BuildShip Workflow",
+        "properties": {},
+        "pattern": "",
+        "type": "string",
+        "description": "Name shown against this webhook in Linear's API settings."
+      },
+      "linearTeamId": {
+        "pattern": "",
+        "title": "Team ID",
+        "default": "",
+        "properties": {},
+        "buildship": { "index": 2, "sensitive": false },
+        "description": "Linear team UUID or key (for example ENG). Leave empty to subscribe to all public teams. Team scope cannot be changed after the webhook is created.",
+        "type": "string"
+      }
+    },
+    "required": ["apiKey", "action", "resourceTypes"]
+  },
+  "label": "Linear Webhook",
+  "setupPreview": "<div style={{\n  display: \"flex\",\n  alignItems: \"center\",\n  justifyContent: \"center\",\n  flexDirection: \"column\",\n  padding: \"22px\",\n  width: \"100%\"\n}}>\n<div\n  style={{\n    padding: \"24px\",\n    backgroundColor: props.theme.palette.elevation.sections,\n    boxShadow: \"0px 4px 16px 0px rgba(0, 0, 0, 0.08)\",\n    borderRadius: \"16px\",\n    width: \"100%\"\n  }}\n>\n  <Typography sx={{ marginBottom: \"8px\" }}>\n    {\"Your trigger is ready to receive data!\"}\n  </Typography>\n  <Typography sx={(theme) => ({ color: theme.palette.text[400], marginBottom: \"24px\" })}>\n    Your selected Action controls which Linear events start this workflow. Resource types: {props.triggerValues?.[\"config.resourceTypes\"]?.join(\", \") ?? \"Issue\"}.\n  </Typography>\n  <ClipboardTextArea label=\"Endpoint URL\" content={`${props.host}/executeWorkflow/${props.flowId}/${props.trigger.id}`} />\n  <div style={{\n    background: props.theme.palette.elevation.divider,\n    height: \"1px\",\n    marginBottom: \"24px\",\n    marginTop: \"24px\"\n  }}\n  ></div>\n  <InputsBinder header=\"Get Latest Request\" description=\"Make a change in Linear that matches your selected Action, then click Get Data.\" trigger={props.trigger} />\n</div>\n</div>",
+  "lifeCycleFunctions": [
+    "onCreate",
+    "onUpdate",
+    "onExecution",
+    "onResponse",
+    "onDelete",
+    "getData"
+  ],
+  "lastDeploymentHash": "",
+  "response": { "type": "object", "required": [], "properties": {} },
+  "usage": "Select your own Linear API key after import. This template contains no embedded credentials or account-specific team, webhook, workspace, or endpoint identifiers. Linear event payloads may contain workspace data and are written to BuildShip logs to support Get Latest Request; handle those logs according to your privacy and retention policies.",
+  "meta": {
+    "id": "linear-webhook",
+    "payloadLimit": false,
+    "name": "Linear Webhook",
+    "fileUploadLimit": false,
+    "icon": { "url": "https://linear.app/favicon.ico", "type": "URL" },
+    "description": "Connect your Linear workspace to this workflow and trigger actions when issues or other entities change. This node subscribes to Linear webhooks for selected resource types (like Issue, Project, or Comment) and detects status transitions using the `statusChanged` flag. Use this node to automate processes based on updates in Linear, such as moving issues between workflow states. For more details, see the [Linear webhook documentation](https://linear.app/developers/webhooks).",
+    "hideConnectButton": false
+  },
+  "script": "import { Logging } from \"@google-cloud/logging\";\nimport parser from \"co-body\";\nimport crypto from \"crypto\";\n\nconst LINEAR_API = \"https://api.linear.app/graphql\";\n\n// API keys come from BuildShip's native credential selector.\nconst getAuthorization = async (_inputs = {}, { auth } = {}) => {\n  if (typeof auth?.getKey !== \"function\") {\n    throw new Error(\"Select a Linear API key in the trigger's API Key dropdown.\");\n  }\n  const apiKey = await auth.getKey();\n  if (typeof apiKey !== \"string\" || !apiKey.trim()) {\n    throw new Error(\"Select a Linear API key in the trigger's API Key dropdown.\");\n  }\n  return apiKey.trim();\n};\n\nconst getAction = (inputs = {}) => {\n  const action = inputs.action?.value ?? inputs.action ?? \"all\";\n  if (![\"all\", \"create\", \"update\", \"remove\", \"statusChanged\"].includes(action)) {\n    throw new Error(\"Select a valid action from the Action dropdown.\");\n  }\n  return action;\n};\n\nconst RESOURCE_TYPES = [\n  \"Issue\", \"Comment\", \"IssueLabel\", \"Project\",\n  \"ProjectUpdate\", \"Cycle\", \"Reaction\",\n];\n\nconst getResourceTypes = (value) => {\n  let selected = value;\n  if (selected == null || selected === \"\") return [\"Issue\"];\n  if (typeof selected === \"string\") {\n    const text = selected.trim();\n    if (text.startsWith(\"[\")) {\n      try {\n        selected = JSON.parse(text);\n      } catch {\n        throw new Error(\"Resource Types contains invalid JSON. Select values from the dropdown.\");\n      }\n    } else {\n      selected = text.split(\",\");\n    }\n  }\n  if (!Array.isArray(selected)) {\n    throw new Error(\"Select Resource Types from the dropdown.\");\n  }\n  const types = [...new Set(selected.map((item) => {\n    const type = item?.value ?? item;\n    if (typeof type !== \"string\" || !RESOURCE_TYPES.includes(type.trim())) {\n      throw new Error(`Invalid Resource Types selection. Choose: ${RESOURCE_TYPES.join(\", \")}.`);\n    }\n    return type.trim();\n  }))];\n  if (!types.length) throw new Error(\"Select at least one Resource Type.\");\n  return types;\n};\n\n// Keep field constraints from Linear's extensions, without echoed credentials,\n// input values, validation targets, or server stack traces.\nconst describeErrors = (errors, authorization, variables) => {\n  const privateValues = [authorization];\n  const collectSecrets = (value) => {\n    if (!value || typeof value !== \"object\") return;\n    for (const [key, item] of Object.entries(value)) {\n      if (/secret|token|password|authorization|api.?key/i.test(key) && typeof item === \"string\" && item) {\n        privateValues.push(item);\n      } else if (item && typeof item === \"object\") {\n        collectSecrets(item);\n      }\n    }\n  };\n  collectSecrets(variables);\n  const clean = (value, depth = 0) => {\n    if (depth > 12) return \"[omitted]\";\n    if (typeof value === \"string\") {\n      let result = value;\n      for (const secret of privateValues.filter(Boolean)) {\n        result = result.split(secret).join(\"[redacted]\");\n      }\n      return result.replace(/lin_api_[A-Za-z0-9_-]+/g, \"[redacted]\");\n    }\n    if (Array.isArray(value)) return value.map((item) => clean(item, depth + 1));\n    if (!value || typeof value !== \"object\") return value;\n    return Object.fromEntries(Object.entries(value)\n      .filter(([key]) => !/^(target|value|stack|stacktrace)$/i.test(key))\n      .map(([key, item]) => [key,\n        /secret|token|password|authorization|api.?key/i.test(key)\n          ? \"[redacted]\" : clean(item, depth + 1),\n      ]));\n  };\n  return errors.map((error) => {\n    const safe = clean(error);\n    const code = safe.extensions?.code;\n    const details = { path: safe.path, extensions: safe.extensions };\n    return `${safe.message || \"GraphQL request failed\"}${code ? ` [${code}]` : \"\"}; details: ${JSON.stringify(details)}`;\n  }).join(\"; \").slice(0, 12000);\n};\n\n// Linear personal API keys are sent without a Bearer prefix.\nconst linearGraphQL = async (\n  authorization,\n  query,\n  variables = {},\n  timeoutMs = 10000\n) => {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), timeoutMs);\n\n  try {\n    const res = await fetch(LINEAR_API, {\n      method: \"POST\",\n      headers: {\n        \"Content-Type\": \"application/json\",\n        Authorization: authorization,\n      },\n      body: JSON.stringify({ query, variables }),\n      signal: controller.signal,\n    });\n\n    let json;\n\n    try {\n      json = await res.json();\n    } catch (err) {\n      throw new Error(\n        `Linear API returned a non-JSON response (HTTP ${res.status})`\n      );\n    }\n\n    if (!res.ok || json.errors?.length) {\n      const message = Array.isArray(json?.errors) && json.errors.length\n        ? describeErrors(json.errors, authorization, variables)\n        : `HTTP ${res.status}`;\n      const operation = query.match(/(?:mutation|query)\\s+(\\w+)/)?.[1] || \"request\";\n      throw new Error(\n        `Linear API error (HTTP ${res.status}, ${operation}): ${message}`\n      );\n    }\n\n    if (!json.data) {\n      throw new Error(\"Linear returned no GraphQL data.\");\n    }\n\n    return json.data;\n  } finally {\n    clearTimeout(timer);\n  }\n};\n\nconst WEBHOOK_CREATE = `\n  mutation CreateWebhook($input: WebhookCreateInput!) {\n    webhookCreate(input: $input) {\n      success\n      webhook {\n        id\n        secret\n        url\n        label\n        enabled\n        resourceTypes\n      }\n    }\n  }\n`;\n\nconst WEBHOOK_UPDATE = `\n  mutation UpdateWebhook($id: String!, $input: WebhookUpdateInput!) {\n    webhookUpdate(id: $id, input: $input) {\n      success\n      webhook {\n        id\n        url\n        label\n        enabled\n        resourceTypes\n      }\n    }\n  }\n`;\n\nconst WEBHOOK_DELETE = `\n  mutation DeleteWebhook($id: String!) {\n    webhookDelete(id: $id) {\n      success\n    }\n  }\n`;\n\nconst WEBHOOK_SECRET = `\n  query WebhookSigningSecret($id: String!) {\n    webhook(id: $id) {\n      id\n      secret\n    }\n  }\n`;\n\nconst onDeploy = async (inputs = {}, context = {}) => {\n  const { resourceTypes, linearTeamId, webhookLabel } = inputs;\n  const { workflow, workflowId, runtimeUrl, env, trigger } = context;\n\n  console.log(\"[Linear trigger] Registration started\");\n\n  try {\n    // BuildShip documents workflow.id.\n    // Keep workflowId as a compatibility fallback.\n    const id = workflow?.id || workflowId;\n\n    if (typeof id !== \"string\" || !id.trim() ||\n        typeof trigger?.id !== \"string\" || !trigger.id.trim() ||\n        typeof runtimeUrl !== \"string\" || !runtimeUrl.trim()) {\n      throw new Error(\n        \"Missing BuildShip workflow.id, trigger.id, or runtimeUrl.\"\n      );\n    }\n\n    const base = new URL(runtimeUrl.trim());\n    if (base.protocol !== \"https:\" || base.hostname === \"localhost\" ||\n        base.hostname.endsWith(\".localhost\") || base.hostname === \"127.0.0.1\" ||\n        base.hostname === \"[::1]\" || base.username || base.password || base.search || base.hash) {\n      throw new Error(\n        \"Linear requires a publicly accessible HTTPS webhook URL.\"\n      );\n    }\n    const webhookUrl =\n      `${base.href.replace(/\\/+$/, \"\")}` +\n      `/executeWorkflow/${encodeURIComponent(id.trim())}/${encodeURIComponent(trigger.id.trim())}`;\n\n    const apiKey = await getAuthorization(inputs, context);\n    const selectedAction = getAction(inputs);\n\n    const types = getResourceTypes(resourceTypes);\n    if (selectedAction === \"statusChanged\" && !types.includes(\"Issue\")) {\n      throw new Error(\"Select Issue in Resource Types to use Issue status changed.\");\n    }\n    if (webhookLabel != null && typeof webhookLabel !== \"string\") {\n      throw new Error(\"Webhook Label must be text.\");\n    }\n    if (linearTeamId != null && typeof linearTeamId !== \"string\") {\n      throw new Error(\"Team ID must be a Linear team UUID or key, or left empty for all public teams.\");\n    }\n    const label = webhookLabel?.trim() || \"BuildShip Workflow\";\n    const teamId = linearTeamId?.trim();\n\n    const existingId = env.get(\"linearWebhookId\");\n    let existingSecret = env.get(\"linearWebhookSecret\");\n\n    if (existingId && !existingSecret) {\n      const data = await linearGraphQL(apiKey, WEBHOOK_SECRET, { id: existingId });\n      existingSecret = data?.webhook?.secret;\n      if (typeof existingSecret !== \"string\" || !existingSecret) {\n        throw new Error(\"Stored Linear webhook has no available signing secret. Copy its signing secret from Linear into linearWebhookSecret and reconnect.\");\n      }\n      await env.set([{ name: \"linearWebhookSecret\", value: existingSecret }]);\n    }\n\n    // Reuse the endpoint and secret when updating an existing webhook.\n    if (existingId && existingSecret) {\n      console.log(\"[Linear trigger] Updating existing webhook\");\n\n      try {\n        const data = await linearGraphQL(apiKey, WEBHOOK_UPDATE, {\n          id: existingId,\n          input: {\n            url: webhookUrl,\n            resourceTypes: types,\n            label,\n            enabled: true,\n          },\n        });\n\n        if (\n          data?.webhookUpdate?.success !== true ||\n          !data.webhookUpdate.webhook?.id\n        ) {\n          throw new Error(\n            \"Linear did not confirm the webhook update.\"\n          );\n        }\n\n        console.log(\"[Linear trigger] Webhook updated\");\n\n        return {\n          success: true,\n          message: \"Webhook updated successfully\",\n        };\n      } catch (error) {\n        // Authentication, permissions, and network failures\n        // do not prove that the existing webhook was deleted.\n        throw new Error(\n          `Could not update the stored Linear webhook: ${error.message}. ` +\n          \"If it was deleted in Linear, clear linearWebhookId and \" +\n          \"linearWebhookSecret in this workflow's environment, \" +\n          \"then reconnect.\"\n        );\n      }\n    }\n\n    // Let Linear generate the signing secret, as in its official API example.\n    const input = {\n      url: webhookUrl,\n      resourceTypes: types,\n      label,\n    };\n\n    if (teamId) {\n      input.teamId = teamId;\n    } else {\n      input.allPublicTeams = true;\n    }\n    console.log(\"[Linear trigger] Creating webhook\");\n\n    const data = await linearGraphQL(apiKey, WEBHOOK_CREATE, {\n      input,\n    });\n\n    const webhook = data?.webhookCreate?.webhook;\n\n    if (\n      data?.webhookCreate?.success !== true ||\n      !webhook?.id\n    ) {\n      throw new Error(\n        \"Linear did not confirm creation or return a webhook id.\"\n      );\n    }\n\n    const secret = webhook.secret;\n    if (typeof secret !== \"string\" || !secret) {\n      // Remember the created webhook so reconnecting cannot create a duplicate.\n      await env.set([{ name: \"linearWebhookId\", value: webhook.id }]);\n      throw new Error(\"Linear created the webhook but did not return a signing secret. Reconnect to retrieve it, or copy it from Linear into linearWebhookSecret.\");\n    }\n\n    await env.set([\n      {\n        name: \"linearWebhookSecret\",\n        value: secret,\n      },\n      {\n        name: \"linearWebhookId\",\n        value: webhook.id,\n      },\n    ]);\n    console.log(\"[Linear trigger] Webhook created\");\n\n    return {\n      success: true,\n      message: \"Webhook created successfully\",\n    };\n  } catch (error) {\n    const message =\n      `Linear webhook registration failed: ${error.message}`;\n\n    console.error(message);\n\n    // Throw so a failed registration cannot be mistaken for success.\n    throw new Error(message);\n  }\n};\n\nconst STATE_LOOKUP = `\n  query StateNames($previousId: String!) {\n    previous: workflowState(id: $previousId) {\n      id\n      name\n      type\n      color\n      position\n    }\n  }\n`;\n\nconst STATE_LOOKUP_BOTH = `\n  query StateNames($previousId: String!, $currentId: String!) {\n    previous: workflowState(id: $previousId) {\n      id\n      name\n      type\n      color\n      position\n    }\n    current: workflowState(id: $currentId) {\n      id\n      name\n      type\n      color\n      position\n    }\n  }\n`;\n\nconst onExecution = async (inputs = {}, context = {}) => {\n  const { resolveStateNames } = inputs;\n  const { req, request, logging, env, nodeReq, terminate } = context;\n  const selectedAction = getAction(inputs);\n\n  const reject = (status, message) => {\n    logging.error(message);\n\n    if (typeof req?.throw === \"function\") {\n      req.throw(status, message);\n    }\n\n    const error = new Error(message);\n    error.status = status;\n    throw error;\n  };\n\n  const secret = env.get(\"linearWebhookSecret\");\n\n  if (!secret) {\n    reject(\n      500,\n      \"linearWebhookSecret not found. \" +\n      \"Connect the trigger successfully first.\"\n    );\n  }\n\n  // Prefer raw bytes retained by upstream middleware.\n  // Never re-stringify parsed JSON for signature verification.\n  const savedRaw =\n    nodeReq?.rawBody ??\n    request?.rawBody ??\n    req?.request?.rawBody;\n\n  let raw;\n  let parsed;\n\n  if (\n    typeof savedRaw === \"string\" ||\n    Buffer.isBuffer(savedRaw)\n  ) {\n    raw = savedRaw;\n  } else {\n    if (!nodeReq || nodeReq.readableEnded) {\n      reject(\n        500,\n        \"Raw webhook body is unavailable for signature verification.\"\n      );\n    }\n\n    const body = await parser[\"json\"](nodeReq, {\n      returnRawBody: true,\n    });\n\n    raw = body.raw;\n    parsed = body.parsed;\n  }\n\n  const headers =\n    request?.headers ??\n    req?.request?.headers ??\n    nodeReq?.headers;\n\n  const signature =\n    typeof headers?.get === \"function\"\n      ? headers.get(\"linear-signature\")\n      : headers?.[\"linear-signature\"] ??\n        headers?.[\"Linear-Signature\"];\n\n  if (\n    typeof signature !== \"string\" ||\n    !/^[a-fA-F0-9]{64}$/.test(signature)\n  ) {\n    reject(401, \"Missing or invalid linear-signature header\");\n  }\n\n  const expectedBuf = crypto\n    .createHmac(\"sha256\", secret)\n    .update(raw)\n    .digest();\n\n  const receivedBuf = Buffer.from(signature, \"hex\");\n\n  if (\n    expectedBuf.length !== receivedBuf.length ||\n    !crypto.timingSafeEqual(expectedBuf, receivedBuf)\n  ) {\n    reject(401, \"Unable to verify Linear signature\");\n  }\n\n  let event;\n\n  try {\n    event = parsed ?? JSON.parse(raw.toString());\n  } catch (err) {\n    reject(400, `Unable to parse Linear payload: ${err.message}`);\n  }\n\n  const timestamp = Number(event?.webhookTimestamp);\n\n  if (\n    !Number.isFinite(timestamp) ||\n    timestamp <= 0 ||\n    Math.abs(Date.now() - timestamp) > 60_000\n  ) {\n    reject(\n      401,\n      \"Missing, invalid, or stale Linear webhook timestamp\"\n    );\n  }\n\n  // Detect issue status changes using the previous stateId.\n  const statusChanged =\n    event?.type === \"Issue\" &&\n    event?.action === \"update\" &&\n    !!event?.updatedFrom &&\n    Object.prototype.hasOwnProperty.call(\n      event.updatedFrom,\n      \"stateId\"\n    );\n\n  const matchesAction =\n    selectedAction === \"all\" ||\n    (selectedAction === \"statusChanged\"\n      ? statusChanged\n      : event?.action === selectedAction);\n\n  if (!matchesAction) {\n    if (typeof terminate !== \"function\") {\n      throw new Error(\"BuildShip terminate() is required to filter webhook events.\");\n    }\n    // Acknowledge the delivery without starting downstream workflow nodes.\n    return terminate(200, \"Event does not match the selected action.\");\n  }\n\n  let previousState = null;\n  let currentState = event?.data?.state ?? null;\n\n  if (statusChanged && resolveStateNames !== false) {\n    const previousId = event.updatedFrom.stateId;\n    const currentId =\n      event?.data?.stateId ?? event?.data?.state?.id;\n\n    if (previousId) {\n      try {\n        const apiKey = await getAuthorization(inputs, context);\n        const needsCurrent = !currentState && !!currentId;\n\n        const data = await linearGraphQL(\n          apiKey,\n          needsCurrent ? STATE_LOOKUP_BOTH : STATE_LOOKUP,\n          needsCurrent\n            ? { previousId, currentId }\n            : { previousId },\n          2000\n        );\n\n        previousState = data?.previous ?? null;\n\n        if (needsCurrent) {\n          currentState = data?.current ?? currentState;\n        }\n      } catch (error) {\n        // Preserve delivery even if optional name resolution fails.\n        logging.error(\n          `Failed to resolve workflow state names: ${error.message}`\n        );\n      }\n    }\n  }\n\n  const result = {\n    ...event,\n    statusChanged,\n    previousState,\n    currentState,\n    statusTransition:\n      statusChanged &&\n      previousState?.name &&\n      currentState?.name\n        ? `${previousState.name} -> ${currentState.name}`\n        : null,\n  };\n\n  logging.log(\"event\", result);\n\n  return result;\n};\n\nconst onDelete = async (inputs = {}, context = {}) => {\n  const { env } = context;\n  const webhookId = env.get(\"linearWebhookId\");\n\n  if (webhookId) {\n    try {\n      const apiKey = await getAuthorization(inputs, context);\n\n      const data = await linearGraphQL(\n        apiKey,\n        WEBHOOK_DELETE,\n        { id: webhookId }\n      );\n\n      if (data?.webhookDelete?.success !== true) {\n        throw new Error(\n          \"Linear did not confirm webhook deletion.\"\n        );\n      }\n\n      await env.delete([\n        \"linearWebhookId\",\n        \"linearWebhookSecret\",\n      ]);\n\n      console.log(\"Webhook deleted successfully\");\n\n      return {\n        success: true,\n        message: \"Webhook deleted successfully\",\n      };\n    } catch (error) {\n      console.log(`Failed to delete webhook: ${error.message}`);\n\n      throw new Error(\n        `Failed to delete Linear webhook: ${error.message}`\n      );\n    }\n  }\n\n  console.log(\"No webhook to delete\");\n\n  return {\n    success: true,\n    message: \"No webhook to delete\",\n  };\n};\n\nconst fetchLogEntries = async (\n  triggerId,\n  retries = 3,\n  delay = 1000\n) => {\n  const projectId = process.env.GCLOUD_PROJECT;\n  const logging = new Logging({ projectId });\n\n  const filter =\n    `logName=\"projects/${projectId}/logs/buildship-node-io\" ` +\n    `AND jsonPayload.nId=\"${triggerId}\"`;\n\n  const options = {\n    filter,\n    pageSize: 10,\n    orderBy: \"timestamp desc\",\n  };\n\n  for (let attempt = 1; attempt <= retries; attempt++) {\n    try {\n      const [entries] = await logging.getEntries(options);\n\n      if (entries && entries.length > 0) {\n        return entries;\n      }\n\n      if (attempt < retries) {\n        await new Promise((resolve) =>\n          setTimeout(resolve, delay)\n        );\n      }\n    } catch (error) {\n      console.error(\n        `Attempt ${attempt} failed due to an error:`,\n        error\n      );\n\n      if (attempt < retries) {\n        await new Promise((resolve) =>\n          setTimeout(resolve, delay)\n        );\n      } else {\n        throw new Error(\n          `Failed to fetch log entries after ${retries} attempts: ` +\n          error.message\n        );\n      }\n    }\n  }\n\n  throw new Error(\n    \"No webhook data found. Change an issue in a subscribed \" +\n    \"Linear team, then click Get Data again.\"\n  );\n};\n\nconst getData = async (inputs, { trigger }) => {\n  try {\n    const entries = await fetchLogEntries(\n      trigger.id,\n      5,\n      2000\n    );\n\n    for (const entry of entries) {\n      const jsonLog = entry.toStructuredJSON();\n\n      for (const payload of [\n        jsonLog.jsonPayload,\n        jsonLog.message,\n        entry.data,\n      ]) {\n        if (\n          payload &&\n          typeof payload === \"object\" &&\n          Object.prototype.hasOwnProperty.call(payload, \"o\")\n        ) {\n          return {\n            success: true,\n            message: \"\",\n            data: payload.o,\n          };\n        }\n      }\n    }\n\n    throw new Error(\n      \"No trigger output found in recent logs. \" +\n      \"Check the workflow logs for delivery errors.\"\n    );\n  } catch (error) {\n    return {\n      success: false,\n      message: error.message,\n      data: null,\n    };\n  }\n};\n\nconst onResponse = () => ({\n  status: 200,\n  value: { received: true },\n  cacheMaxAge: 0,\n});\n\nexport default {\n  onCreate: onDeploy,\n  onUpdate: onDeploy,\n  onExecution,\n  onResponse,\n  onDelete,\n  getData,\n};\n",
+  "request": { "buildship": {} },
+  "id": "11d5a889-2ed2-438d-b84d-888d36867cb4"
+}
