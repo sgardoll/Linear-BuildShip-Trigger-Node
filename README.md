@@ -1,0 +1,2 @@
+# Linear BuildShip Trigger Node
+Connect your Linear workspace to this node and trigger BuildShip workflows when issues or other entities change. This node automatically generates and subscribes to a Linear webhook for selected resource types (like Issue, Project, or Comment) and detects status transitions using the statusChanged flag. Use this node to automate processes based on updates in Linear, such as moving issues between workflow states.
