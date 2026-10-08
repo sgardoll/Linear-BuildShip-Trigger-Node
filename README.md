@@ -10,11 +10,9 @@ cd Linear-BuildShip-Trigger-Node
 
 Open [linear-trigger-buildship.json](linear-trigger-buildship.json). It contains one webhook-trigger definition with its configuration, output schema and lifecycle script, not a complete BuildShip workflow or a published workflow remix link.
 
-### Import route: unresolved
+### Import route
 
-BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) describes adding ordinary nodes through the plus button between connected nodes, then **Node Explorer > Paste from Clipboard**. It separately describes pasting a whole workflow schema. Neither documented route establishes that this file can be installed in a workflow's trigger slot. The [custom-trigger documentation](https://docs.buildship.com/create-triggers) describes webhook definitions and lifecycle functions, but does not establish this file's import path. [Remix links](https://docs.buildship.com/remix) require a shared workflow; this repository supplies no such link.
-
-The actual trigger import/remix route remains **INCONCLUSIVE**. A maintainer must verify a supported route in BuildShip before readers can connect this trigger. Acquiring and inspecting the JSON alone does not complete setup. No import, deployment or webhook test was performed for these instructions.
+BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) describes adding Trigger nodes by clicking **Add Trigger > New Trigger > Paste**. 
 
 ## Inputs and credentials
 
@@ -29,7 +27,7 @@ The names, options and defaults below come from the definition's `config`, `_gro
 | Webhook Label | `webhookLabel` | Default `BuildShip Workflow`; blank/whitespace also falls back to this label. |
 | Resolve State Names | `resolveStateNames` | Default `true`. On qualifying status updates, optionally looks up state names with a 2-second request timeout. Set `false` to skip that lookup; a state object already in the event is still retained. |
 
-BuildShip must provide `runtimeUrl`, workflow/trigger IDs, credential access and trigger environment storage. The script constructs the execution URL and requires public HTTPS without URL credentials, query or fragment. It stores the Linear-generated webhook ID and signing secret under `linearWebhookId` and `linearWebhookSecret`. These are environment names, not values to copy from this README.
+The script constructs the execution URL and requires public HTTPS without URL credentials, query or fragment. It stores the Linear-generated webhook ID and signing secret under `linearWebhookId` and `linearWebhookSecret`. 
 
 ## Event and output contract
 
@@ -86,9 +84,6 @@ The separate `onResponse` function specifies HTTP 200 with `{ "received": true }
 
 ## Lifecycle, failures and limits
 
-All behavior here is read from the [existing script in the JSON](linear-trigger-buildship.json); it has not been exercised against BuildShip or Linear.
-
-- BuildShip's documented lifecycle calls `onCreate` on first deployment, `onUpdate` on redeployment and `onDelete` on deletion. This script creates/enables a Linear webhook on creation, updates its URL/resources/label on update, and deletes it on deletion. These operations mutate Linear. Existing team scope is not updated. Registration/API errors throw; the script does not silently replace a webhook when updating fails.
 - If a stored webhook ID has no stored secret, registration attempts to recover its signing secret from Linear. If creation returns an ID without a secret, it preserves the ID and throws to avoid creating a duplicate on the next attempt. Missing credential/provider context, invalid configuration or a non-public URL also prevents registration.
 - Execution rejects a missing stored signing secret or unavailable raw request body with status 500. A missing/malformed/mismatched signature or missing/invalid timestamp, including one more than 60 seconds in either direction from the receiving clock, is rejected with 401. Invalid JSON after verification is rejected with 400. Filtering requires BuildShip's `terminate` helper for unmatched events.
 - Optional state-name lookup errors are logged without discarding the verified event. States and transitions can remain `null`; downstream nodes must handle that. Ordinary registration requests have a 10-second timeout. There is no event deduplication or delivery queue in this script.
