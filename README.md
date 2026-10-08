@@ -12,7 +12,7 @@ Open [linear-trigger-buildship.json](linear-trigger-buildship.json). It contains
 
 ### Import route
 
-BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) describes adding Trigger nodes by clicking **Add Trigger > New Trigger > Paste**. 
+The proposed trigger-specific route is **Add Trigger > New Trigger > Paste**, but importing this definition through that route has not been verified. BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) covers ordinary nodes and whole workflows; it does not establish this trigger-specific sequence. The actual trigger import criterion remains **INCONCLUSIVE** pending verification.
 
 ## Inputs and credentials
 
@@ -27,7 +27,7 @@ The names, options and defaults below come from the definition's `config`, `_gro
 | Webhook Label | `webhookLabel` | Default `BuildShip Workflow`; blank/whitespace also falls back to this label. |
 | Resolve State Names | `resolveStateNames` | Default `true`. On qualifying status updates, optionally looks up state names with a 2-second request timeout. Set `false` to skip that lookup; a state object already in the event is still retained. |
 
-The script constructs the execution URL and requires public HTTPS without URL credentials, query or fragment. It stores the Linear-generated webhook ID and signing secret under `linearWebhookId` and `linearWebhookSecret`. 
+The script constructs the execution URL and requires public HTTPS without URL credentials, query or fragment. It stores the Linear-generated webhook ID and signing secret under `linearWebhookId` and `linearWebhookSecret`.
 
 ## Event and output contract
 
