@@ -12,7 +12,7 @@ Open [linear-trigger-buildship.json](linear-trigger-buildship.json). It contains
 
 ### Import route
 
-The proposed trigger-specific route is **Add Trigger > New Trigger > Paste**, but importing this definition through that route has not been verified. BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) covers ordinary nodes and whole workflows; it does not establish this trigger-specific sequence. The actual trigger import criterion remains **INCONCLUSIVE** pending verification.
+The proposed trigger-specific route is **Add Trigger > New Trigger > Paste**, but importing this definition through that route has not been verified. BuildShip's [copy/paste documentation](https://docs.buildship.com/copy-paste) covers ordinary nodes and whole workflows; it does not establish this trigger-specific sequence.
 
 ## Inputs and credentials
 
